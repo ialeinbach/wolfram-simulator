@@ -1,5 +1,5 @@
 * Move checking for arguments not input by user into dispRule().
-  Two birds, one stone -- allows dispRule to handle invalid input as well as cleans up main().
+  Two birds, one stone -- allows dispRule to handle invalid input in addition to cleaning up main().
 
 * Look into even-/odd-ness of initial array.
-  Potential problem case: if dispWidth is even or odd, my affect finding center of initial array.
+  Potential problem case: if dispWidth is even or odd, may affect finding center of initial array.
