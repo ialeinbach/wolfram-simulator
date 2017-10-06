@@ -17,3 +17,5 @@ Simply call ```go run wolframrules.go``` to compile and run. Arguments determine
 * Calling with at least two arguments will have the second be interpretted as the number of lines for which the rule will be simulated.
 
 * Calling with at least three arguments will ahve the third be interprestted as the width of the rows to be simulated.
+
+If the width or height of a simulation is not provided, it will be printed across the full width of the terminal for the full height of the terminal.
