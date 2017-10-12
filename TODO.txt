@@ -3,3 +3,5 @@
 
 * Look into even-/odd-ness of initial array.
   Potential problem case: if dispWidth is even or odd, may affect finding center of initial array.
+
+* Use flags package to handle command line arguments
