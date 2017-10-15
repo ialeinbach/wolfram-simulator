@@ -1,21 +1,17 @@
 # Wolfram Rule Simulator
 
-This program is designed to print a simulation of one or many wolfram rules in the terminal.
-
-#### Prerequisites
-
-This program uses STTY to detect terminal window size.
+This program is designed to print a simulation of one or many Wolfram rules in the terminal.
 
 #### Usage
 
 Simply call ```go run wolframrules.go``` to compile and run. Arguments determine program behavior as follows:
 
-* Calling with no arguments will print all 256 Wolfram rules across the full width of the terminal for the full height of the terminal, displaying a new rule every second.
+```-rule``` specifies rule to simulate. 
+```-rows``` specifies the number of rows for which to simulate a rule.
+```-width``` specifies row width of simulation.
 
-* Calling with at least one argument will have the first be interpretted as a rule ID.
+#### Default Argument Values
 
-* Calling with at least two arguments will have the second be interpretted as the number of lines for which the rule will be simulated.
-
-* Calling with at least three arguments will have the third be interprestted as the width of the rows to be simulated.
-
-If the width or height of a simulation is not provided, it will be printed across the full width of the terminal and/or for the full height of the terminal.
+Not specifying ```rule``` will cause the program to print all 256 rules sequentially, one every second.
+Not specifying ```rows``` will set it to the terminal height (accounting for space needed to print rule label at the top).
+Not specifying ```width``` will set it to the width of the terminal.
