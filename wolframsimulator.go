@@ -138,6 +138,8 @@ func validateParameters() error {
 		return errors.New("Invalid ruleId: 0 <= ruleId < 256 or rule = 256 to print every rule, one every second")
 	} else if displayWidth > terminalWidth {
 		return errors.New(fmt.Sprintf("Invalid displayWidth: displayWidth <= terminalWidth(%d)", terminalWidth))
+	} else if displayWidth < 0 {
+		return errors.New("Invalid displayWidth: displayWidth > 0")
 	} else if nRows <= 0 {
 		return errors.New("Invalid nRows: nRows > 0")
 	}
