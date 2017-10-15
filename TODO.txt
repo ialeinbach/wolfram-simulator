@@ -1,2 +1,1 @@
-* Look into even-/odd-ness of initial array.
-  Potential problem case: if dispWidth is even or odd, may affect finding center of initial array.
+No explicit feature updates in mind currently.
