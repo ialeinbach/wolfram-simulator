@@ -8,7 +8,7 @@ Simply call ```go run wolframrules.go``` to compile and run. Arguments determine
 
 ```-rule``` specifies rule to simulate.  
 ```-rows``` specifies the number of rows for which to simulate a rule.  
-```-width``` specifies row width of simulation.  
+```-width``` specifies row width.  
 
 #### Default Argument Values
 
