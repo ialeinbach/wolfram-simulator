@@ -26,9 +26,6 @@ var terminalWidth, terminalHeight int
 func getSizeInfo() (arrWidth, arrMiddle int) {
 	// offset arrWidth by displayWidth so
 	// the last row is displayWidth wide
-	//
-	// displayWidth guaranteed to be odd, so arrWidth will
-	// always be odd i.e. have a middle element
 	arrWidth = 2 * (nRows - 1) + displayWidth
 	arrMiddle = (arrWidth - 1) / 2
 	return
@@ -68,9 +65,6 @@ func generateInitialRow() (initialRow []byte) {
 
 // returns indices start, end such that row[start:end] contains
 // middle displayWidth elements of entire row
-//
-// rows are guaranteed to have odd length, so there is
-// always a middle subset of elements
 func getDisplayBounds(arrWidth int) (start, end int) {
 	start = (arrWidth - displayWidth) / 2
 	end = start + displayWidth
