@@ -1,1 +1,1 @@
-No explicit feature updates in mind currently.
+Use termbox-go to display rather than printing
