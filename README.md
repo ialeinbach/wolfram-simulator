@@ -2,6 +2,11 @@
 
 This program is designed to print a simulation of one or many Wolfram rules in the terminal.
 
+#### Prerequisites
+
+Download and install [termbox-go](http://github.com/nsf/termbox-go) using:  
+```go get github.com/nsf/termbox-go```  
+
 #### Usage
 
 Simply call ```go run wolframrules.go``` to compile and run. Arguments determine program behavior as follows:
