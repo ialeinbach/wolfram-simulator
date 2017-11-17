@@ -12,12 +12,12 @@ Simply call ```go run wolfram-simulator.go``` to compile and run.
 
 Arguments determine program behavior as follows:
 
-```-rule``` (```-r```) specifies the rule to simulate.
-```-width``` (```-w```) specifies the width of the simulation.
-```-height``` (```-h```) specifies the height of the simulation.
+* ```-rule``` (```-r```) specifies the rule to simulate.
+* ```-width``` (```-w```) specifies the width of the simulation.
+* ```-height``` (```-h```) specifies the height of the simulation.
 
 Default argument values:
 
-```rule =``` 30
-```width =``` width of terminal
-```height =``` height of terminal
+* ```rule =``` 30</ br>
+* ```width =``` width of terminal
+* ```height =``` height of terminal
