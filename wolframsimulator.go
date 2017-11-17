@@ -1,216 +1,208 @@
 package main
 
 import (
-	"fmt"
-	"time"
-	"errors"
-	"log"
-	"flag"
 	"github.com/nsf/termbox-go"
+	"errors"
+	"flag"
+	"log"
+	"os"
 )
 
-// minimum height of terminal required
-const MIN_HEIGHT = 4
+type row []byte
 
-// receive values from flags
-var nRows, displayWidth, ruleId int
+var displayHeight, displayWidth, ruleId int
+var logging bool
 
-// hold terminal dimensions
-var terminalWidth, terminalHeight int
+const (
+	FgColor = termbox.ColorYellow
+	BgColor = termbox.ColorBlue
+)
 
-// Because each bit depends on the above bit and those adjacent, a
-// row of width n is determined by a row of width n+2. Given
-// nRows, arrWidth holds size of initial row needed to completely
-// determine nRows of width displayWidth. arrMiddle holds middle index
-// of arrWidth
-func getSizeInfo() (arrWidth, arrMiddle int) {
-	// offset arrWidth by displayWidth so
-	// the last row is displayWidth wide
-	arrWidth = 2 * (nRows - 1) + displayWidth
-	arrMiddle = (arrWidth - 1) / 2
-	return
+func handleError(err error, logThis bool) {
+	if logThis {
+		log.Println(err.Error())
+	}
+	panic(err)
 }
 
-// return printable character to represent a bit value
-func getDisplayString(value byte) (displayString string) {
+// sets middle element to 1, all others 0
+func getDeterminantRow() row {
+	rowWidth := 2*(displayHeight-1) + displayWidth
+	rowMiddle := rowWidth / 2
+
+	r := make(row, rowWidth, rowWidth)
+	r[rowMiddle] = 1
+
+	return r
+}
+
+func getDisplayRune(value byte) (displayString rune) {
 	if value == 0 {
-		displayString = " "
+		displayString = ' '
 	} else {
-		displayString = "#"
+		displayString = '#'
 	}
 
 	return
 }
 
-// rules encoded as single byte where each bit
-// represents output resulting from input of a
-// bit's index (0-7) when expressed as 3-bit
-// binary number (000-111)
-func applyRule(input, rule byte) byte {
-	// apply bit mask over bottom three bits of input
-	// to prevent over-shifting
-	return (rule >> (input & 7)) & 1
-}
+// centers simulation
+func getDisplayBounds() (upper, lower, left, right int) {
+	tWidth, tHeight := termbox.Size()
 
-// initial row has all 0s except a
-// single 1 in the middle
-func generateInitialRow() (initialRow []byte) {
-	width, middle := getSizeInfo()
+	upper = (tHeight / 2) - (displayHeight / 2)
+	lower = upper + displayHeight
 
-	initialRow = make([]byte, width)
-	initialRow[middle] = 1
+	left = (tWidth / 2) - (displayWidth / 2)
+	right = left + displayWidth
 
 	return
 }
 
-// returns indices start, end such that row[start:end] contains
-// middle displayWidth elements of entire row
-func getDisplayBounds(arrWidth int) (start, end int) {
-	start = (arrWidth - displayWidth) / 2
-	end = start + displayWidth
+func drawRow(y int, offset int, r row) error {
+	width, height := termbox.Size()
 
-	return
-}
-
-// given a slice of a row, insert into a byte
-// to be processed by applyRule()
-func parseInput(previousInput []byte) byte {
-	length := len(previousInput)
-
-	if length != 3 {
-		log.Fatal(errors.New("parseInput given slice with invalid length"))
+	if y < 0 || y >= height {
+		return errors.New("Row out of range")
+	} else if len(r) > width {
+		return errors.New("Row too wide")
 	}
 
-	// initialized to 0
-	var input byte
-
-	for i := 0; i < length; i++ {
-		input += previousInput[i]
-		input <<= 1
+	for i, val := range r {
+		termbox.SetCell(i+offset, y, getDisplayRune(val), FgColor, BgColor)
 	}
 
-	return input >> 1
+	termbox.Flush()
+
+	return nil
 }
 
-// generates new row based on previous row and rule
-func generateNextRow(previousRow []byte, rule byte) (nextRow []byte) {
-	arrWidth := len(previousRow) - 2
-	nextRow = make([]byte, arrWidth)
+// validates ruleId, displayHeight, displayWidth
+func validateParameters(ignoreRule bool) error {
+	tWidth, tHeight := termbox.Size()
 
-	// iterate across previousRow
-	// generate nextRow according to rule
-	for i := 0; i < arrWidth; i++ {
-		nextRow[i] = applyRule(parseInput(previousRow[i:i+3]), rule)
-	}
+	const (
+		invRuleId        = "Invalid ruleId: 0 <= ruleId < 256"
+		invDisplayWidth  = "Invalid displayWidth: 0 < displayWidth <= tWidth"
+		invDisplayHeight = "Invalid displayHeight: 0 < displayHeight <= tHeight"
+	)
 
-	return
-}
-
-// print at most the central displayWidth elements of a row
-func printRow(row []byte) {
-	arrWidth := len(row)
-	i, end := getDisplayBounds(arrWidth)
-
-	for ; i < end; i++ {
-		fmt.Printf("%s", getDisplayString(row[i]))
-	}
-
-	fmt.Println()
-}
-
-// print simple label for a rule
-func printRuleLabel() {
-	fmt.Printf(".------------------.\n")
-	fmt.Printf("|     Rule %3d     |\n", ruleId)
-	fmt.Printf("`------------------'\n")
-}
-
-// validates ruleId, nRows, and displayWidth
-func validateParameters() error {
-	//ruleId = 256 is a special value, see main() for behavior
-	if ruleId < 0 || ruleId > 256 {
-		return errors.New("Invalid ruleId: 0 <= ruleId < 256 or rule = 256 to print every rule, one every second")
-	} else if displayWidth > terminalWidth {
-		return errors.New(fmt.Sprintf("Invalid displayWidth: displayWidth <= terminalWidth(%d)", terminalWidth))
-	} else if displayWidth < 0 {
-		return errors.New("Invalid displayWidth: displayWidth > 0")
-	} else if nRows <= 0 {
-		return errors.New("Invalid nRows: nRows > 0")
+	switch {
+	case displayWidth <= 0 || displayWidth > tWidth:
+		return errors.New(invDisplayWidth)
+	case displayHeight <= 0 || displayHeight > tHeight:
+		return errors.New(invDisplayHeight)
+	case !ignoreRule && (ruleId < 0 || ruleId > 256):
+		return errors.New(invRuleId)
 	}
 
 	return nil
 }
 
-// simulates rule ruleId for nRows rows with a width of displayWidth
-// note: assumes validated parameters (ruleId, nRows, displayWidth)
-//   \__
-//      `--> validateParameters() called in init()
-func displayRule() {
-	rule := byte(ruleId)
-	printRuleLabel()
+func applyRule(input []byte) byte {
+	output := byte(ruleId)
 
-	currentRow := generateInitialRow()
-	printRow(currentRow)
-
-	for i := 1; i < nRows; i++ {
-		currentRow = generateNextRow(currentRow, rule)
-		printRow(currentRow)
+	for i, n := range input {
+		output >>= (n & 1) << uint(i)
 	}
+
+	return output & 1
 }
 
-// clear terminal and detect terminal dimensions
-func initializeTerminal() error {
-	// termbox.Init() also clears terminal
-	if err := termbox.Init(); err != nil {
-		return err
+func getNextRow(previous row) row {
+	rowWidth := len(previous) - 2
+	next := make(row, rowWidth, rowWidth)
+
+	for i := 0; i < rowWidth; i++ {
+		next[i] = applyRule(previous[i : i+3])
 	}
 
-	// only need to close if *succesfully* initialized
-	defer termbox.Close()
+	return next
+}
 
-	terminalWidth, terminalHeight = termbox.Size()
+func getCenter(r row) row {
+	left := (len(r) / 2) - (displayWidth / 2)
 
-	if terminalHeight < MIN_HEIGHT {
-		return errors.New(fmt.Sprintf("Terminal window height must be at least %d.", MIN_HEIGHT))
+	return r[left : left+displayWidth]
+}
+
+func runSimulation() {
+	currentRow := getDeterminantRow()
+	upper, lower, left, _ := getDisplayBounds()
+
+	for y := upper; y < lower; y++ {
+		drawRow(y, left, getCenter(currentRow))
+		currentRow = getNextRow(currentRow)
 	}
-
-	return nil
 }
 
 func init() {
-	// also detects terminal dimensions
-	if err := initializeTerminal(); err != nil {
+	if err := termbox.Init(); err != nil {
 		log.Fatal(err)
 	}
 
-	// usage messages for flags
 	const (
-		usgNRows = "number of rows for which to simulate rule(s)"
-		usgDisplayWidth = "width of rows"
-		usgRuleId = "valid rule to be simulated or 256 to display all rules, one every second"
+		usgDisplayHeight = "height of simulation"
+		usgDisplayWidth  = "width of simulation"
+		usgRuleId        = "rule to be simulated"
+		usgSimAllRules   = "display all rules, one every second"
+		usgLogging       = "create log file"
 	)
 
-	// define flags
-	flag.IntVar(&nRows, "rows", terminalHeight - MIN_HEIGHT, usgNRows)
-	flag.IntVar(&displayWidth, "width", terminalWidth, usgDisplayWidth)
-	flag.IntVar(&ruleId, "rule", 256, usgRuleId)
+	defaultWidth, defaultHeight := termbox.Size()
+	defaultRule := 30
+
+	// -height, -h ==> displayHeight
+	flag.IntVar(&displayHeight, "height", defaultHeight, usgDisplayHeight)
+	flag.IntVar(&displayHeight, "h", defaultHeight, usgDisplayHeight+" (abbr. of -height)")
+
+	// -width, -w ==> displayWidth
+	flag.IntVar(&displayWidth, "width", defaultWidth, usgDisplayWidth)
+	flag.IntVar(&displayWidth, "w", defaultWidth, usgDisplayWidth+" (abbr. of -width)")
+
+	// -rule, -r ==> ruleId
+	flag.IntVar(&ruleId, "rule", defaultRule, usgRuleId)
+	flag.IntVar(&ruleId, "r", defaultRule, usgRuleId+" (abbr. of -rule)")
+
+	// -all, -a ==> display all rules, one every second
+	var simAllRules bool
+	flag.BoolVar(&simAllRules, "all", false, usgSimAllRules)
+	flag.BoolVar(&simAllRules, "a", false, usgSimAllRules+" (abbr. of -all)")
+
+	// -log, -l ==> create log file
+	flag.BoolVar(&logging, "log", false, usgLogging)
+	flag.BoolVar(&logging, "l", false, usgLogging+" (abbr of -log)")
 
 	flag.Parse()
 
-	// ensure valid parameters for displayRule()
-	if err := validateParameters(); err != nil {
-		log.Fatal(err)
+	if err := validateParameters(simAllRules); err != nil {
+		termbox.Close()
+		handleError(err, false)
 	}
 }
 
 func main() {
-	// special value used to print all rules, one every second
-	if ruleId == 256 {
-		for ruleId = 0; ruleId < 256; ruleId++ {
-			displayRule()
-			time.Sleep(time.Second)
+	defer termbox.Close()
+
+	if logging {
+		logFile, err := os.OpenFile("wsim_log.txt", os.O_CREATE|os.O_RDWR, 0666)
+		if err != nil {
+			handleError(errors.New("Log file initialization error"), false)
 		}
-	} else {
-		displayRule()
+		log.SetOutput(logFile)
+		log.Println("[Wolfram Simulator Log File]")
+
+		defer logFile.Close()
+	}
+
+	runSimulation()
+
+	//wait for any keypress to continue
+	for {
+		if currentEvent := termbox.PollEvent(); currentEvent.Type == termbox.EventError {
+			handleError(currentEvent.Err, logging)
+		} else if currentEvent.Type == termbox.EventKey {
+			break
+		}
 	}
 }

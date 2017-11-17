@@ -1,1 +1,1 @@
-Use termbox-go to display rather than printing
+* add functionality to display all rules, one per second

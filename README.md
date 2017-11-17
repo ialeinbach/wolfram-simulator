@@ -1,22 +1,23 @@
 # Wolfram Rule Simulator
 
-This program is designed to print a simulation of one or many Wolfram rules in the terminal.
+This program displays a simulated Wolfram rule.
 
-#### Prerequisites
+### Prerequisites
 
-Download and install [termbox-go](http://github.com/nsf/termbox-go) using:  
-```go get github.com/nsf/termbox-go```  
+Download and install [termbox-go](http://github.com/nsf/termbox-go) using: ```go get github.com/nsf/termbox-go```
 
-#### Usage
+### Usage
 
-Simply call ```go run wolframrules.go``` to compile and run. Arguments determine program behavior as follows:
+Simply call ```go run wolfram-simulator.go``` to compile and run.
 
-```-rule``` specifies rule to simulate.  
-```-rows``` specifies the number of rows for which to simulate a rule.  
-```-width``` specifies row width.  
+Arguments determine program behavior as follows:
 
-#### Default Argument Values
+```-rule``` (```-r```) specifies the rule to simulate.
+```-width``` (```-w```) specifies the width of the simulation.
+```-height``` (```-h```) specifies the height of the simulation.
 
-Not specifying ```rule``` will cause the program to print all 256 rules sequentially, one every second.  
-Not specifying ```rows``` will set it to the terminal height (accounting for space needed to print rule label at the top).  
-Not specifying ```width``` will set it to the width of the terminal.  
+Default argument values:
+
+```rule =``` 30
+```width =``` width of terminal
+```height =``` height of terminal
