@@ -8,7 +8,7 @@ Download and install [termbox-go](http://github.com/nsf/termbox-go) using: ```go
 
 ### Usage
 
-Simply call ```go run wolfram-simulator.go``` to compile and run.
+Simply call ```go run wolframsimulator.go``` to compile and run.
 
 Arguments determine program behavior as follows:
 
