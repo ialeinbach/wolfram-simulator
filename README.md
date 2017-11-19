@@ -18,6 +18,6 @@ Arguments determine program behavior as follows:
 
 Default argument values:
 
-* ```rule =``` 30</ br>
+* ```rule =``` 30
 * ```width =``` width of terminal
 * ```height =``` height of terminal
